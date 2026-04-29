@@ -1,29 +1,32 @@
 package com.pvz.core;
 
-import com.pvz.level.GameWorld;
-
 public class Game implements Runnable {
 
-    private static final int TARGET_FPS = 60;
+    private static final int    TARGET_FPS   = 60;
     private static final double NS_PER_FRAME = 1_000_000_000.0 / TARGET_FPS;
 
     private GamePanel panel;
-    private GameWorld world;
-    private Thread gameThread;
-    private boolean running = false;
+    private GameState currentState;
+    private Thread    gameThread;
+    private boolean   running = false;
 
     public Game() {
-        world = new GameWorld();
-        panel = new GamePanel(world);
+        panel = new GamePanel(this);
         new GameWindow(panel);
-        InputHandler input = new InputHandler(world);
-        panel.addMouseListener(input);
-        panel.addKeyListener(input);
         panel.setFocusable(true);
+        setState(new MenuState(this));   // bắt đầu ở Menu
+    }
+
+    public void setState(GameState state) {
+        this.currentState = state;
+    }
+
+    public GameState getState() {
+        return currentState;
     }
 
     public void start() {
-        running = true;
+        running    = true;
         gameThread = new Thread(this);
         gameThread.start();
     }
@@ -31,7 +34,7 @@ public class Game implements Runnable {
     @Override
     public void run() {
         double lastTime = System.nanoTime();
-        double delta = 0;
+        double delta    = 0;
 
         while (running) {
             double now = System.nanoTime();
@@ -39,18 +42,16 @@ public class Game implements Runnable {
             lastTime = now;
 
             while (delta >= 1) {
-                update((float)(1.0 / TARGET_FPS));
+                if (currentState != null)
+                    currentState.update((float)(1.0 / TARGET_FPS));
                 delta--;
             }
 
-            render();
+            panel.repaint();
 
             try { Thread.sleep(1); } catch (InterruptedException ignored) {}
         }
     }
-
-    private void update(float dt) { world.update(dt); }
-    private void render() { panel.repaint(); }
 
     public static void main(String[] args) {
         new Game().start();

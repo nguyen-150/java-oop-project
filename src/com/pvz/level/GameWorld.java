@@ -24,6 +24,17 @@ public class GameWorld {
     private float   spawnTimer    = 0f;
     private float   spawnDelay    = 5f;
 
+    private final com.pvz.core.Game game;
+    private int     wave          = 1;
+    private int     zombiesLeft   = 10;
+    private int     zombiesKilled = 0;
+    private float   waveBreak     = 0f;
+    private boolean waveBreaking  = false;
+
+    public GameWorld(com.pvz.core.Game game) {
+        this.game = game;
+    }
+
     // ── Update ──────────────────────────────────────────────
 
     public void update(float dt) {
@@ -33,6 +44,7 @@ public class GameWorld {
         updateProjectiles(dt);
         checkCollisions();
         spawnZombies(dt);
+        checkWinLose();
     }
 
     private void updatePlants(float dt) {
@@ -77,7 +89,23 @@ public class GameWorld {
         }
         zombies.removeIf(Zombie::isDead);
     }
-
+    private void checkWinLose() {
+        // Thua: zombie qua màn hình trái
+        for (Zombie z : zombies) {
+            if (z.getX() < GRID_X - 60) {
+                game.setState(new com.pvz.core.GameOverState(game, false));
+                return;
+            }
+        }
+        // Thắng wave: hết zombie + không còn zombie nào trên màn
+        if (zombiesLeft <= 0 && zombies.isEmpty() && !waveBreaking) {
+            if (wave >= 3) {
+                game.setState(new com.pvz.core.GameOverState(game, true));
+            } else {
+                waveBreaking = true;
+            }
+        }
+    }
     private void updateProjectiles(float dt) {
         projectiles.forEach(p -> p.update(dt));
         projectiles.removeIf(p -> p.isOffScreen() || p.isHit());
@@ -98,13 +126,32 @@ public class GameWorld {
     }
 
     private void spawnZombies(float dt) {
+        if (waveBreaking) {
+            waveBreak += dt;
+            if (waveBreak >= 5f) {  // nghỉ 5 giây giữa wave
+                waveBreaking = false;
+                waveBreak    = 0;
+                nextWave();
+            }
+            return;
+        }
+        if (zombiesLeft <= 0) return;
         spawnTimer += dt;
         if (spawnTimer >= spawnDelay) {
             spawnTimer = 0;
             int row = (int)(Math.random() * ROWS);
             zombies.add(new BasicZombie(row, 920f));
+            zombiesLeft--;
         }
     }
+
+    private void nextWave() {
+        wave++;
+        zombiesLeft  = 5 + wave * 3;   // wave càng cao càng nhiều zombie
+        spawnDelay   = Math.max(1.5f, 5f - wave * 0.3f);  // spawn nhanh hơn
+        zombiesKilled = 0;
+    }
+
 
     // ── Draw ────────────────────────────────────────────────
 
@@ -199,6 +246,18 @@ public class GameWorld {
         g.setColor(new Color(255, 255, 255, 180));
         g.setFont(new Font("Arial", Font.PLAIN, 11));
         g.drawString("1/2/3 = chon cay  |  Click = dat  |  ESC = pause", 380, 32);
+
+        // Wave indicator
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("Wave: " + wave + "/3", 780, 32);
+        g.drawString("Zombies: " + (zombiesLeft + zombies.size()), 780, 48);
+
+        if (waveBreaking) {
+            g.setColor(new Color(255, 220, 0));
+            g.setFont(new Font("Arial", Font.BOLD, 28));
+            g.drawString("Wave " + wave + " cleared!  Next wave in 5s...", 220, 340);
+        }
     }
 
     private void drawPauseOverlay(Graphics2D g) {
