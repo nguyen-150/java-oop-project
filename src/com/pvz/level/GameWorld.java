@@ -1,11 +1,18 @@
 package com.pvz.level;
 
+import com.pvz.entity.ExplosionEffect;
+import com.pvz.entity.FreezeEffect;
+import com.pvz.entity.SunDropEffect;
 import com.pvz.entity.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameWorld {
+
+    private final EffectManager effectManager = new EffectManager();
+    private float sunDropTimer = 0f;
+    private float sunDropDelay = 7f;  // sun rơi mỗi 7 giây
 
     public static final int ROWS   = 5;
     public static final int COLS   = 9;
@@ -45,6 +52,8 @@ public class GameWorld {
         checkCollisions();
         spawnZombies(dt);
         checkWinLose();
+        effectManager.update(dt);
+        spawnSunDrop(dt);
     }
 
     private void updatePlants(float dt) {
@@ -87,6 +96,10 @@ public class GameWorld {
                 z.update(dt);
             }
         }
+        List<Zombie> toRemove = zombies.stream()
+                .filter(Zombie::isDead).toList();
+        toRemove.forEach(z -> effectManager.add(
+                new ExplosionEffect(z.getX() + 30, GRID_Y + z.getRow() * CELL_H + 45)));
         zombies.removeIf(Zombie::isDead);
     }
     private void checkWinLose() {
@@ -152,6 +165,17 @@ public class GameWorld {
         zombiesKilled = 0;
     }
 
+    private void spawnSunDrop(float dt) {
+        sunDropTimer += dt;
+        if (sunDropTimer >= sunDropDelay) {
+            sunDropTimer = 0;
+            float x       = 100 + (float)(Math.random() * 700);
+            float targetY = 100 + (float)(Math.random() * 350);
+            effectManager.addSunDrop(new SunDropEffect(x, -30, targetY));
+        }
+    }
+
+
 
     // ── Draw ────────────────────────────────────────────────
 
@@ -161,6 +185,7 @@ public class GameWorld {
         drawPlants(g);
         drawProjectiles(g);
         drawZombies(g);
+        effectManager.draw(g);
         drawHUD(g);
         if (paused) drawPauseOverlay(g);
     }
@@ -273,6 +298,10 @@ public class GameWorld {
     // ── Input ────────────────────────────────────────────────
 
     public void handleClick(int px, int py) {
+        // Thu sun trước
+        int gained = effectManager.collectSunAt(px, py);
+        if (gained > 0) { sun += gained; return; }
+
         if (py < 55) {
             for (int i = 0; i < 3; i++) {
                 int x = 120 + i * 80;
