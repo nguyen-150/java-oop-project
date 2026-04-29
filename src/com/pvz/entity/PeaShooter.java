@@ -14,7 +14,9 @@ public class PeaShooter extends Plant {
         super.update(dt);
         if (zombieInRow && attackTimer >= attackCooldown) {
             attackTimer = 0;
-            projectiles.add(new Projectile(row, col + 1, 9, 20));
+            float startX = com.pvz.level.GameWorld.GRID_X
+                    + (col + 1) * com.pvz.level.GameWorld.CELL_W - 10f;
+            projectiles.add(new Projectile(row, startX, 20));
         }
     }
 
