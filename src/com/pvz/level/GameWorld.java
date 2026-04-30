@@ -288,7 +288,11 @@ public class GameWorld {
 
         g.setColor(new Color(255, 255, 255, 180));
         g.setFont(new Font("Arial", Font.PLAIN, 11));
-        g.drawString("1/2/3 = chon cay  |  Click = dat  |  ESC = pause", 380, 32);
+        g.setColor(new Color(0, 0, 0, 100));
+        g.fillRect(0, 560, 900, 20);
+        g.setColor(new Color(255, 255, 255, 180));
+        g.setFont(new Font("Arial", Font.PLAIN, 11));
+        g.drawString("Click seed packet hoac bam so 1-6 de chon cay  |  ESC = pause", 200, 573);
 
         // Wave indicator
         g.setColor(Color.WHITE);
@@ -324,10 +328,11 @@ public class GameWorld {
         }
 
         if (py < 55) {
-            for (int i = 0; i < 3; i++) {
-                int x = 120 + i * 80;
-                if (px >= x && px <= x + 68) {
+            for (int i = 0; i < 6; i++) {
+                int x = 120 + i * 75 + 35;  // ← thêm +35 để khớp với vị trí thực
+                if (px >= x - 35 && px <= x + 30) {
                     selectedPlant = i;
+                    System.out.println("Selected plant: " + i); // debug
                     return;
                 }
             }

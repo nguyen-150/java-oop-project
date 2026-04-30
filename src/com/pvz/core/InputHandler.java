@@ -23,6 +23,9 @@ public class InputHandler extends MouseAdapter implements KeyListener {
             case KeyEvent.VK_1      -> world.selectPlant(0);
             case KeyEvent.VK_2      -> world.selectPlant(1);
             case KeyEvent.VK_3      -> world.selectPlant(2);
+            case KeyEvent.VK_4      -> world.selectPlant(3);
+            case KeyEvent.VK_5      -> world.selectPlant(4);
+            case KeyEvent.VK_6      -> world.selectPlant(5);
         }
     }
 
