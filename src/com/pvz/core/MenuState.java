@@ -2,14 +2,18 @@ package com.pvz.core;
 
 import java.awt.*;
 import java.awt.event.*;
+import com.pvz.util.SaveManager;
 
 public class MenuState implements GameState {
 
     private final Game game;
     private int hoveredButton = -1; // 0=Play, 1=Quit
 
+    private final boolean hasSave;
+
     public MenuState(Game game) {
-        this.game = game;
+        this.game    = game;
+        this.hasSave = SaveManager.hasSave();
     }
 
     @Override
@@ -37,12 +41,21 @@ public class MenuState implements GameState {
         g.setFont(new Font("Arial", Font.BOLD, 22));
         drawShadowText(g, "Java Edition", 370, 210, new Color(50, 80, 20));
 
-        // Nút Play
-        drawButton(g, "PLAY GAME", 300, 280, 300, 60, hoveredButton == 0,
+        // Nút Play (đổi vị trí xuống)
+        drawButton(g, "NEW GAME", 300, 290, 300, 55,
+                hoveredButton == 0,
                 new Color(50, 180, 50), new Color(30, 140, 30));
 
+        // Nút Continue — chỉ hiện nếu có save
+        if (hasSave) {
+            drawButton(g, "CONTINUE", 300, 360, 300, 55,
+                    hoveredButton == 2,
+                    new Color(50, 120, 200), new Color(30, 80, 160));
+        }
+
         // Nút Quit
-        drawButton(g, "QUIT", 350, 370, 200, 60, hoveredButton == 1,
+        drawButton(g, "QUIT", 350, 435, 200, 55,
+                hoveredButton == 1,
                 new Color(200, 60, 60), new Color(160, 30, 30));
 
         // Credits
@@ -78,10 +91,20 @@ public class MenuState implements GameState {
     @Override
     public void onMousePressed(MouseEvent e) {
         int x = e.getX(), y = e.getY();
-        if (x >= 300 && x <= 600 && y >= 280 && y <= 340) {
+
+        // New Game
+        if (x >= 300 && x <= 600 && y >= 290 && y <= 345) {
+            SaveManager.deleteSave();
             game.setState(new PlayingState(game));
         }
-        if (x >= 350 && x <= 550 && y >= 370 && y <= 430) {
+        // Continue
+        if (hasSave && x >= 300 && x <= 600 && y >= 360 && y <= 415) {
+            PlayingState ps = new PlayingState(game);
+            ps.getWorld().loadGame();
+            game.setState(ps);
+        }
+        // Quit
+        if (x >= 350 && x <= 550 && y >= 435 && y <= 490) {
             System.exit(0);
         }
     }

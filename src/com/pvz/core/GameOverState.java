@@ -2,6 +2,7 @@ package com.pvz.core;
 
 import java.awt.*;
 import java.awt.event.*;
+import com.pvz.util.SaveManager;
 
 public class GameOverState implements GameState {
 
@@ -11,6 +12,7 @@ public class GameOverState implements GameState {
     public GameOverState(Game game, boolean win) {
         this.game = game;
         this.win  = win;
+        if (!win) SaveManager.deleteSave();  // thua → xóa save
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.pvz.entity.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import com.pvz.util.SaveManager;
 
 public class GameWorld {
 
@@ -224,7 +225,17 @@ public class GameWorld {
         effectManager.add(new ExplosionEffect(cx, cy, maxRadius));
     }
 
+    public void saveGame() {
+        SaveManager.save( wave, sun );
+    }
 
+    public void loadGame() {
+        int[] data = SaveManager.load();
+        if (data != null) {
+            wave  = data[0];
+            sun   = data[1];
+        }
+    }
 
     // ── Draw ────────────────────────────────────────────────
 
@@ -391,7 +402,11 @@ public class GameWorld {
         sun -= costs[selectedPlant];
     }
 
-    public void togglePause()      { paused = !paused; }
+    public void togglePause()      {
+        paused = !paused;
+        if (paused) saveGame();  // tự động save khi pause
+    }
+
     public void selectPlant(int i) { selectedPlant = i; }
 
     // ── Helpers ──────────────────────────────────────────────

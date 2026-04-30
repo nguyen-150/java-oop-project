@@ -14,6 +14,8 @@ public class PlayingState implements GameState {
         this.world = new GameWorld(game);
     }
 
+    public GameWorld getWorld() { return world; }
+
     @Override
     public void update(float dt) {
         world.update(dt);
