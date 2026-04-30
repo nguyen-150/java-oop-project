@@ -86,7 +86,14 @@ public class GameWorld {
             int col = pixelToCol(z.getX());
             Plant plantAhead = (col >= 0 && col < COLS) ? grid[z.getRow()][col] : null;
 
-            // PotatoMine tự xử lý — zombie không ăn được
+            // PoleVaultZombie nhảy qua cây đầu tiên
+            if (z instanceof PoleVaultZombie pvz && !pvz.hasVaulted() && plantAhead != null) {
+                float newX = z.getX() - CELL_W * 1.5f;
+                pvz.vault(newX);
+                continue;
+            }
+
+            // PotatoMine tự xử lý
             if (plantAhead instanceof PotatoMine) {
                 z.setEating(false);
                 z.update(dt);
@@ -110,7 +117,6 @@ public class GameWorld {
             }
         }
 
-        // Explosion khi zombie chết
         for (Zombie z : zombies) {
             if (z.isDead()) {
                 float cx = z.getX() + 30;
@@ -165,7 +171,7 @@ public class GameWorld {
     private void spawnZombies(float dt) {
         if (waveBreaking) {
             waveBreak += dt;
-            if (waveBreak >= 5f) {  // nghỉ 5 giây giữa wave
+            if (waveBreak >= 5f) {
                 waveBreaking = false;
                 waveBreak    = 0;
                 nextWave();
@@ -177,7 +183,22 @@ public class GameWorld {
         if (spawnTimer >= spawnDelay) {
             spawnTimer = 0;
             int row = (int)(Math.random() * ROWS);
-            zombies.add(new BasicZombie(row, 920f));
+
+            // Wave 1: BasicZombie
+            // Wave 2: thêm BucketZombie
+            // Wave 3: thêm PoleVaultZombie
+            double rand = Math.random();
+            if (wave == 1) {
+                zombies.add(new BasicZombie(row, 920f));
+            } else if (wave == 2) {
+                zombies.add(rand < 0.5
+                        ? new BasicZombie(row, 920f)
+                        : new BucketZombie(row, 920f));
+            } else {
+                if (rand < 0.33)      zombies.add(new BasicZombie(row, 920f));
+                else if (rand < 0.66) zombies.add(new BucketZombie(row, 920f));
+                else                  zombies.add(new PoleVaultZombie(row, 920f));
+            }
             zombiesLeft--;
         }
     }
