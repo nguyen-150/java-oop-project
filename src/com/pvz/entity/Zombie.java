@@ -14,6 +14,15 @@ public class Zombie {
     protected float attackCooldown = 1f;
     protected boolean eating = false;
 
+    private float freezeTimer = 0f;
+    private float originalSpeed;
+
+    public void freeze(float duration) {
+        if (freezeTimer <= 0) originalSpeed = speed;
+        speed       = originalSpeed * 0.3f;
+        freezeTimer = duration;
+    }
+
     public Zombie(int row, float startX, int hp, float speed) {
         this.row   = row;
         this.x     = startX;
@@ -23,6 +32,10 @@ public class Zombie {
     }
 
     public void update(float dt) {
+        if (freezeTimer > 0) {
+            freezeTimer -= dt;
+            if (freezeTimer <= 0) speed = originalSpeed;
+        }
         if (!eating) {
             x -= speed * dt;    // đi từ phải sang trái
         } else {

@@ -66,6 +66,12 @@ public class GameWorld {
                     sun += sf.updateAndGetSun(dt);
                 } else if (p instanceof PeaShooter ps) {
                     ps.update(dt, projectiles, hasZombieInRow(r, c));
+                } else if (p instanceof SnowPea sp) {
+                    sp.update(dt, projectiles, hasZombieInRow(r, c));
+                } else if (p instanceof CherryBomb cb) {
+                    cb.update(dt, zombies, this);
+                } else if (p instanceof PotatoMine pm) {
+                    pm.update(dt, zombies, this);
                 } else {
                     p.update(dt);
                 }
@@ -128,10 +134,15 @@ public class GameWorld {
         for (Projectile proj : projectiles) {
             if (proj.isHit()) continue;
             for (Zombie z : zombies) {
-                if (z.getRow() == proj.getRow()
-                        && Math.abs(z.getX() - proj.getX()) < 40) {
+                if (z.getRow() != proj.getRow()) continue;
+                float zombieLeft  = z.getX();
+                float zombieRight = z.getX() + 60;
+                if (proj.getX() >= zombieLeft && proj.getX() <= zombieRight) {
                     z.takeDamage(proj.getDamage());
                     proj.markHit();
+                    if (proj instanceof SnowProjectile) {
+                        z.freeze(3f);
+                    }
                     break;
                 }
             }
@@ -173,6 +184,10 @@ public class GameWorld {
             float targetY = 100 + (float)(Math.random() * 350);
             effectManager.addSunDrop(new SunDropEffect(x, -30, targetY));
         }
+    }
+
+    public void addExplosion(float cx, float cy, float maxRadius) {
+        effectManager.add(new ExplosionEffect(cx, cy, maxRadius));
     }
 
 
@@ -250,22 +265,25 @@ public class GameWorld {
         g.drawString(String.valueOf(sun), 54, 32);
 
         // Seed packets
-        String[] names  = {"PeaShooter", "Sunflower", "WallNut"};
-        Color[]  colors = {new Color(50,180,50), new Color(255,200,0), new Color(180,120,60)};
-        int[]    costs  = {100, 50, 50};
+        String[] names  = {"PeaShooter", "Sunflower", "WallNut", "SnowPea", "CherryBomb", "PotatoMine"};
+        Color[]  colors = {
+                new Color(50,180,50), new Color(255,200,0), new Color(180,120,60),
+                new Color(80,180,220), new Color(220,50,50), new Color(139,100,60)
+        };
+        int[] costs = {100, 50, 50, 175, 150, 25};
 
-        for (int i = 0; i < 3; i++) {
-            int px = 120 + i * 80;
+        for (int i = 0; i < 6; i++) {
+            int px = 120 + i * 75;
             if (selectedPlant == i) {
                 g.setColor(new Color(255, 255, 0, 180));
-                g.fillRoundRect(px - 3, 3, 74, 49, 8, 8);
+                g.fillRoundRect(px - 3, 3, 71, 49, 8, 8);
             }
             g.setColor(sun >= costs[i] ? colors[i] : colors[i].darker().darker());
-            g.fillRoundRect(px, 6, 68, 43, 8, 8);
+            g.fillRoundRect(px, 6, 65, 43, 8, 8);
             g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 10));
-            g.drawString(names[i], px + 4, 22);
-            g.drawString(costs[i] + " sun", px + 4, 40);
+            g.setFont(new Font("Arial", Font.BOLD, 9));
+            g.drawString(names[i], px + 3, 20);
+            g.drawString(costs[i] + " sun", px + 3, 40);
         }
 
         g.setColor(new Color(255, 255, 255, 180));
@@ -300,12 +318,18 @@ public class GameWorld {
     public void handleClick(int px, int py) {
         // Thu sun trước
         int gained = effectManager.collectSunAt(px, py);
-        if (gained > 0) { sun += gained; return; }
+        if (gained > 0) {
+            sun += gained;
+            return;
+        }
 
         if (py < 55) {
             for (int i = 0; i < 3; i++) {
                 int x = 120 + i * 80;
-                if (px >= x && px <= x + 68) { selectedPlant = i; return; }
+                if (px >= x && px <= x + 68) {
+                    selectedPlant = i;
+                    return;
+                }
             }
             return;
         }
@@ -314,13 +338,16 @@ public class GameWorld {
         if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
         if (grid[row][col] != null) return;
 
-        int[] costs = {100, 50, 50};
+        int[] costs = {100, 50, 50, 175, 150, 25};
         if (selectedPlant < 0 || sun < costs[selectedPlant]) return;
 
         switch (selectedPlant) {
             case 0 -> grid[row][col] = new PeaShooter(row, col);
             case 1 -> grid[row][col] = new Sunflower(row, col);
             case 2 -> grid[row][col] = new WallNut(row, col);
+            case 3 -> grid[row][col] = new SnowPea(row, col);
+            case 4 -> grid[row][col] = new CherryBomb(row, col);
+            case 5 -> grid[row][col] = new PotatoMine(row, col);
         }
         sun -= costs[selectedPlant];
     }

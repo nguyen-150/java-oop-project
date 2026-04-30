@@ -5,12 +5,17 @@ import java.awt.*;
 public class ExplosionEffect extends Effect {
 
     private float radius    = 5f;
-    private float maxRadius = 80f;
+    private float maxRadius;
     private float duration  = 0.4f;
 
     public ExplosionEffect(float x, float y) {
-        this.x = x;
-        this.y = y;
+        this(x, y, 80f);
+    }
+
+    public ExplosionEffect(float x, float y, float maxRadius) {
+        this.x         = x;
+        this.y         = y;
+        this.maxRadius = maxRadius;
     }
 
     @Override
