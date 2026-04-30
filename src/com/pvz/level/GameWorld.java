@@ -46,8 +46,8 @@ public class GameWorld {
 
     public void update(float dt) {
         if (paused) return;
-        updatePlants(dt);
         updateZombies(dt);
+        updatePlants(dt);
         updateProjectiles(dt);
         checkCollisions();
         spawnZombies(dt);
@@ -86,6 +86,13 @@ public class GameWorld {
             int col = pixelToCol(z.getX());
             Plant plantAhead = (col >= 0 && col < COLS) ? grid[z.getRow()][col] : null;
 
+            // PotatoMine tự xử lý — zombie không ăn được
+            if (plantAhead instanceof PotatoMine) {
+                z.setEating(false);
+                z.update(dt);
+                continue;
+            }
+
             if (plantAhead != null) {
                 z.setEating(true);
                 z.update(dt);
@@ -102,12 +109,18 @@ public class GameWorld {
                 z.update(dt);
             }
         }
-        List<Zombie> toRemove = zombies.stream()
-                .filter(Zombie::isDead).toList();
-        toRemove.forEach(z -> effectManager.add(
-                new ExplosionEffect(z.getX() + 30, GRID_Y + z.getRow() * CELL_H + 45)));
+
+        // Explosion khi zombie chết
+        for (Zombie z : zombies) {
+            if (z.isDead()) {
+                float cx = z.getX() + 30;
+                float cy = GRID_Y + z.getRow() * CELL_H + 45;
+                effectManager.add(new ExplosionEffect(cx, cy));
+            }
+        }
         zombies.removeIf(Zombie::isDead);
     }
+
     private void checkWinLose() {
         // Thua: zombie qua màn hình trái
         for (Zombie z : zombies) {
