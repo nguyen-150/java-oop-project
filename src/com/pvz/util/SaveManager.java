@@ -15,7 +15,6 @@ public class SaveManager {
             Files.createDirectories(Paths.get(SAVE_DIR));
             String data = wave + "\n" + sun;
             Files.writeString(Paths.get(SAVE_FILE), data);
-            System.out.println("Game saved!");
         } catch (IOException e) {
             System.err.println("Save failed: " + e.getMessage());
         }
@@ -29,10 +28,8 @@ public class SaveManager {
             String[] lines = content.split("\n");
             int wave = Integer.parseInt(lines[0].trim());
             int sun = Integer.parseInt(lines[1].trim());
-            System.out.println("Game loaded! Wave=" + wave + " Sun=" + sun);
             return new int[]{wave, sun};
         } catch (IOException e) {
-            System.out.println("No save file found, starting new game.");
             return null;
         }
     }
@@ -43,7 +40,6 @@ public class SaveManager {
     public static void deleteSave() {
         try {
             Files.deleteIfExists(Paths.get(SAVE_FILE));
-            System.out.println("Save deleted.");
         } catch (IOException e) {
             System.err.println("Delete failed: " + e.getMessage());
         }

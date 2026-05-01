@@ -65,6 +65,7 @@ public class GameWorld {
 
                 if (p instanceof Sunflower sf) {
                     sun += sf.updateAndGetSun(dt);
+                    sun = Math.min(sun, 9999);
                 } else if (p instanceof PeaShooter ps) {
                     ps.update(dt, projectiles, hasZombieInRow(r, c));
                 } else if (p instanceof SnowPea sp) {
@@ -83,7 +84,8 @@ public class GameWorld {
     }
 
     private void updateZombies(float dt) {
-        for (Zombie z : zombies) {
+        List<Zombie> snapshot = new ArrayList<>(zombies);
+        for (Zombie z : snapshot) {
             int col = pixelToCol(z.getX());
             Plant plantAhead = (col >= 0 && col < COLS) ? grid[z.getRow()][col] : null;
 
@@ -369,6 +371,7 @@ public class GameWorld {
         int gained = effectManager.collectSunAt(px, py);
         if (gained > 0) {
             sun += gained;
+            sun = Math.min(sun, 9999);
             return;
         }
 
