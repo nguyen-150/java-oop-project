@@ -377,7 +377,6 @@ public class GameWorld {
                 int x = 120 + i * 75 + 35;  // ← thêm +35 để khớp với vị trí thực
                 if (px >= x - 35 && px <= x + 30) {
                     selectedPlant = i;
-                    System.out.println("Selected plant: " + i); // debug
                     return;
                 }
             }

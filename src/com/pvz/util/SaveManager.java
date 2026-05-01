@@ -10,10 +10,10 @@ public class SaveManager {
 
     // ── Save ────────────────────────────────────────────────
 
-    public static void save(int wave, int sun, int score) {
+    public static void save(int wave, int sun) {
         try {
             Files.createDirectories(Paths.get(SAVE_DIR));
-            String data = wave + "\n" + sun + "\n" + score;
+            String data = wave + "\n" + sun;
             Files.writeString(Paths.get(SAVE_FILE), data);
             System.out.println("Game saved!");
         } catch (IOException e) {
@@ -27,18 +27,18 @@ public class SaveManager {
         try {
             String content = Files.readString(Paths.get(SAVE_FILE));
             String[] lines = content.split("\n");
-            int wave  = Integer.parseInt(lines[0].trim());
-            int sun   = Integer.parseInt(lines[1].trim());
-            int score = Integer.parseInt(lines[2].trim());
+            int wave = Integer.parseInt(lines[0].trim());
+            int sun = Integer.parseInt(lines[1].trim());
             System.out.println("Game loaded! Wave=" + wave + " Sun=" + sun);
-            return new int[]{wave, sun, score};
+            return new int[]{wave, sun};
         } catch (IOException e) {
             System.out.println("No save file found, starting new game.");
-            return null;  // không có file save
+            return null;
         }
     }
 
-    // ── Delete ──────────────────────────────────────────────
+
+        // ── Delete ──────────────────────────────────────────────
 
     public static void deleteSave() {
         try {
